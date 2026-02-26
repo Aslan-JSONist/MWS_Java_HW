@@ -1,3 +1,30 @@
+server:
+  port: 8081
+
+app:
+  name: ToDoListApp
+  version: 1.0
+
 spring:
-  application:
-    name: todolist
+  profiles:
+    active: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    root: INFO
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
