@@ -1,38 +1,36 @@
 package com.example.todolist.aspect;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Logging aspect for service layer.
+ * Aspect responsible for logging method calls
+ * within the service layer.
  *
- * This aspect intercepts all method calls inside
- * the service package and logs when a method starts
- * and when it finishes execution.
- *
- * It uses @Around advice to wrap method execution.
+ * This aspect logs the start and completion of
+ * each service method invocation.
  */
 @Aspect
 @Component
 public class LoggingAspect {
 
+  private static final Logger log =
+      LoggerFactory.getLogger(LoggingAspect.class);
+
   /**
-   * Logs method execution start and end for all service methods.
-   *
-   * @param joinPoint provides access to the intercepted method
-   * @return result of the executed method
-   * @throws Throwable if the intercepted method throws an exception
+   * Logs execution of all methods in the service package.
    */
   @Around("execution(* com.example.todolist.service.*.*(..))")
   public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
 
-    System.out.println("START: " + joinPoint.getSignature());
+    log.info("START {}", joinPoint.getSignature());
 
     Object result = joinPoint.proceed();
 
-    System.out.println("END: " + joinPoint.getSignature());
+    log.info("END {}", joinPoint.getSignature());
 
     return result;
   }

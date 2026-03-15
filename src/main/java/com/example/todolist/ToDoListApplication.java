@@ -6,9 +6,9 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * Main entry point of the ToDoList Spring Boot application.
- *
- * This class bootstraps the application and enables
- * Spring Boot auto-configuration and AspectJ support.
+ * <p>
+ * This class bootstraps the application and enables Spring Boot auto-configuration and AspectJ
+ * support.
  */
 @SpringBootApplication
 @EnableAspectJAutoProxy

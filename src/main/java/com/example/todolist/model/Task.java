@@ -4,15 +4,11 @@ import java.util.Objects;
 
 /**
  * Task entity represents a task in the system.
- *
- * A task contains:
- * - id — unique identifier
- * - title — short name of the task
- * - description — detailed information
- * - completed — status of task completion
- *
- * This class overrides equals, hashCode and toString
- * for proper comparison and debugging.
+ * <p>
+ * A task contains: - id — unique identifier - title — short name of the task - description —
+ * detailed information - completed — status of task completion
+ * <p>
+ * This class overrides equals, hashCode and toString for proper comparison and debugging.
  */
 public class Task {
 
@@ -30,10 +26,10 @@ public class Task {
   /**
    * Creates a new task with all fields.
    *
-   * @param id task id
-   * @param title task title
+   * @param id          task id
+   * @param title       task title
    * @param description task description
-   * @param completed completion status
+   * @param completed   completion status
    */
   public Task(Long id, String title, String description, boolean completed) {
     this.id = id;
@@ -79,8 +75,12 @@ public class Task {
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Task task)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Task task)) {
+      return false;
+    }
     return completed == task.completed &&
         Objects.equals(id, task.id) &&
         Objects.equals(title, task.title) &&

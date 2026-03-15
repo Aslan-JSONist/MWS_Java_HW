@@ -1,6 +1,6 @@
 package com.example.todolist;
 
-import com.example.todolist.model.Task;
+import com.example.todolist.dto.TaskDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,10 +27,10 @@ class TaskControllerTest {
 
   @Test
   void create_positive() {
-    Task task = new Task(null, "Title", "Desc", false);
+    TaskDto task = new TaskDto(null, "Title", "Desc", false);
 
-    ResponseEntity<Task> response =
-        restTemplate.postForEntity(url(), task, Task.class);
+    ResponseEntity<TaskDto> response =
+        restTemplate.postForEntity(url(), task, TaskDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.getBody()).isNotNull();
@@ -38,10 +38,10 @@ class TaskControllerTest {
 
   @Test
   void create_negative() {
-    Task task = new Task(null, "", "Desc", false);
+    TaskDto task = new TaskDto(null, "", "Desc", false);
 
-    ResponseEntity<Task> response =
-        restTemplate.postForEntity(url(), task, Task.class);
+    ResponseEntity<TaskDto> response =
+        restTemplate.postForEntity(url(), task, TaskDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
@@ -50,8 +50,8 @@ class TaskControllerTest {
 
   @Test
   void getAll_positive() {
-    ResponseEntity<Task[]> response =
-        restTemplate.getForEntity(url(), Task[].class);
+    ResponseEntity<TaskDto[]> response =
+        restTemplate.getForEntity(url(), TaskDto[].class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
@@ -59,11 +59,11 @@ class TaskControllerTest {
 
   @Test
   void getAll_notEmptyAfterCreate() {
-    Task task = new Task(null, "Test", "Desc", false);
-    restTemplate.postForEntity(url(), task, Task.class);
+    TaskDto task = new TaskDto(null, "Test", "Desc", false);
+    restTemplate.postForEntity(url(), task, TaskDto.class);
 
-    ResponseEntity<Task[]> response =
-        restTemplate.getForEntity(url(), Task[].class);
+    ResponseEntity<TaskDto[]> response =
+        restTemplate.getForEntity(url(), TaskDto[].class);
 
     assertThat(response.getBody()).isNotEmpty();
   }
@@ -72,13 +72,14 @@ class TaskControllerTest {
 
   @Test
   void getById_positive() {
-    Task task = new Task(null, "Title", "Desc", false);
-    Task created = restTemplate
-        .postForEntity(url(), task, Task.class)
+    TaskDto task = new TaskDto(null, "Title", "Desc", false);
+
+    TaskDto created = restTemplate
+        .postForEntity(url(), task, TaskDto.class)
         .getBody();
 
-    ResponseEntity<Task> response =
-        restTemplate.getForEntity(url() + "/" + created.getId(), Task.class);
+    ResponseEntity<TaskDto> response =
+        restTemplate.getForEntity(url() + "/" + created.getId(), TaskDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody().getId()).isEqualTo(created.getId());
@@ -86,8 +87,8 @@ class TaskControllerTest {
 
   @Test
   void getById_negative() {
-    ResponseEntity<Task> response =
-        restTemplate.getForEntity(url() + "/999999", Task.class);
+    ResponseEntity<TaskDto> response =
+        restTemplate.getForEntity(url() + "/999999", TaskDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
   }
@@ -96,17 +97,18 @@ class TaskControllerTest {
 
   @Test
   void update_positive() {
-    Task task = new Task(null, "Title", "Desc", false);
-    Task created = restTemplate
-        .postForEntity(url(), task, Task.class)
+    TaskDto task = new TaskDto(null, "Title", "Desc", false);
+
+    TaskDto created = restTemplate
+        .postForEntity(url(), task, TaskDto.class)
         .getBody();
 
-    Task update = new Task(null, "Updated", "UpdatedDesc", true);
+    TaskDto update = new TaskDto(null, "Updated", "UpdatedDesc", true);
 
     restTemplate.put(url() + "/" + created.getId(), update);
 
-    ResponseEntity<Task> response =
-        restTemplate.getForEntity(url() + "/" + created.getId(), Task.class);
+    ResponseEntity<TaskDto> response =
+        restTemplate.getForEntity(url() + "/" + created.getId(), TaskDto.class);
 
     assertThat(response.getBody().getTitle()).isEqualTo("Updated");
     assertThat(response.getBody().isCompleted()).isTrue();
@@ -114,7 +116,7 @@ class TaskControllerTest {
 
   @Test
   void update_negative() {
-    Task update = new Task(null, "Updated", "UpdatedDesc", true);
+    TaskDto update = new TaskDto(null, "Updated", "UpdatedDesc", true);
 
     ResponseEntity<Void> response =
         restTemplate.exchange(
@@ -131,9 +133,10 @@ class TaskControllerTest {
 
   @Test
   void delete_positive() {
-    Task task = new Task(null, "Title", "Desc", false);
-    Task created = restTemplate
-        .postForEntity(url(), task, Task.class)
+    TaskDto task = new TaskDto(null, "Title", "Desc", false);
+
+    TaskDto created = restTemplate
+        .postForEntity(url(), task, TaskDto.class)
         .getBody();
 
     ResponseEntity<Void> response =
