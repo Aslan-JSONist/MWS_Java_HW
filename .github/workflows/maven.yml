@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout maker
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -21,11 +21,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build project
-        run: ./mvnw clean compile -B
-
-      - name: Run tests
-        run: ./mvnw test -B
+      - name: Build and test
+        run: chmod +x ./mvnw && ./mvnw -B clean verify
 
       - name: Upload test results
         if: always()

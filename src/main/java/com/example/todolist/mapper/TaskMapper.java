@@ -23,6 +23,8 @@ public interface TaskMapper {
   Task toEntity(TaskCreateDto dto);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "completed", expression = "java(dto.getCompleted() != null ? dto.getCompleted() : task.isCompleted())")
   @Mapping(target = "tags", expression = "java(dto.getTags() == null ? task.getTags() : new java.util.HashSet<>(dto.getTags()))")
   void updateEntity(TaskUpdateDto dto, @MappingTarget Task task);
