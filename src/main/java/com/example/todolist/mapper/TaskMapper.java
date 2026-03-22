@@ -1,42 +1,31 @@
 package com.example.todolist.mapper;
 
-import com.example.todolist.dto.TaskDto;
+import com.example.todolist.dto.TaskCreateDto;
+import com.example.todolist.dto.TaskResponseDto;
+import com.example.todolist.dto.TaskUpdateDto;
 import com.example.todolist.model.Task;
-import org.springframework.stereotype.Component;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 /**
- * Mapper responsible for converting between
- * Task entity and TaskDto objects.
- *
- * This class isolates transformation logic between
- * internal domain models and API data structures.
+ * MapStruct mapper between {@link Task} and API DTOs.
  */
-@Component
-public class TaskMapper {
+@Mapper(componentModel = "spring")
+public interface TaskMapper {
 
-  /**
-   * Converts Task entity to TaskDto.
-   */
-  public TaskDto toDto(Task task) {
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "completed", constant = "false")
+  @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+  @Mapping(target = "tags", expression = "java(dto.getTags() == null ? new java.util.HashSet<>() : new java.util.HashSet<>(dto.getTags()))")
+  Task toEntity(TaskCreateDto dto);
 
-    return new TaskDto(
-        task.getId(),
-        task.getTitle(),
-        task.getDescription(),
-        task.isCompleted()
-    );
-  }
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  @Mapping(target = "completed", expression = "java(dto.getCompleted() != null ? dto.getCompleted() : task.isCompleted())")
+  @Mapping(target = "tags", expression = "java(dto.getTags() == null ? task.getTags() : new java.util.HashSet<>(dto.getTags()))")
+  void updateEntity(TaskUpdateDto dto, @MappingTarget Task task);
 
-  /**
-   * Converts TaskDto to Task entity.
-   */
-  public Task toEntity(TaskDto dto) {
-
-    return new Task(
-        dto.getId(),
-        dto.getTitle(),
-        dto.getDescription(),
-        dto.isCompleted()
-    );
-  }
+  TaskResponseDto toResponseDto(Task task);
 }

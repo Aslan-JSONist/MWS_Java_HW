@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * TaskRepository defines CRUD operations
- * for task persistence layer.
+ * TaskRepository defines CRUD operations for task persistence layer.
  */
 public interface TaskRepository {
 
@@ -17,4 +16,6 @@ public interface TaskRepository {
   Task save(Task task);
 
   void deleteById(Long id);
+
+  long count();
 }

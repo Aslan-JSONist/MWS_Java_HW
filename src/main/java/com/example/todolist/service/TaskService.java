@@ -1,5 +1,6 @@
 package com.example.todolist.service;
 
+import com.example.todolist.dto.TaskUpdateDto;
 import com.example.todolist.model.Task;
 
 import java.util.List;
@@ -16,7 +17,9 @@ public interface TaskService {
 
   Task create(Task task);
 
-  Task update(Long id, Task task);
+  Task update(Long id, TaskUpdateDto dto);
 
   void delete(Long id);
+
+  long count();
 }
