@@ -4,6 +4,7 @@ import com.example.todolist.config.JpaConfig;
 import com.example.todolist.model.Priority;
 import com.example.todolist.model.Task;
 import com.example.todolist.model.TaskAttachment;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -29,6 +30,12 @@ class TaskRepositoryTest {
 
   @Autowired
   private TaskAttachmentRepository taskAttachmentRepository;
+
+  @BeforeEach
+  void cleanDatabase() {
+    taskAttachmentRepository.deleteAll();
+    taskRepository.deleteAll();
+  }
 
   @Test
   void saveTaskWithAttachment_persistsRelation() {
