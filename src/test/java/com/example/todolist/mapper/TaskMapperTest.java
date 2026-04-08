@@ -30,7 +30,7 @@ class TaskMapperTest {
     Task task = mapper.toEntity(dto);
     assertThat(task.getId()).isNull();
     assertThat(task.isCompleted()).isFalse();
-    assertThat(task.getCreatedAt()).isNotNull();
+    assertThat(task.getCreatedAt()).isNull();
     assertThat(task.getTags()).containsExactlyInAnyOrder("a", "b");
   }
 

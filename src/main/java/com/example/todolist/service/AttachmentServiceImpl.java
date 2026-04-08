@@ -2,6 +2,7 @@ package com.example.todolist.service;
 
 import com.example.todolist.exception.AttachmentNotFoundException;
 import com.example.todolist.exception.TaskNotFoundException;
+import com.example.todolist.model.Task;
 import com.example.todolist.model.TaskAttachment;
 import com.example.todolist.repository.TaskAttachmentRepository;
 import com.example.todolist.repository.TaskRepository;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
@@ -48,18 +50,19 @@ public class AttachmentServiceImpl implements AttachmentService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<TaskAttachment> listForTask(Long taskId) {
-    if (!taskRepository.findById(taskId).isPresent()) {
+    if (taskRepository.findById(taskId).isEmpty()) {
       throw new TaskNotFoundException(taskId);
     }
-    return attachmentRepository.findByTaskId(taskId);
+    return attachmentRepository.findByTask_IdOrderByIdAsc(taskId);
   }
 
   @Override
+  @Transactional
   public TaskAttachment storeAttachment(Long taskId, MultipartFile file) {
-    if (!taskRepository.findById(taskId).isPresent()) {
-      throw new TaskNotFoundException(taskId);
-    }
+    Task task = taskRepository.findById(taskId)
+        .orElseThrow(() -> new TaskNotFoundException(taskId));
     String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
     String stored = UUID.randomUUID().toString();
     Path target = uploadRoot.resolve(stored);
@@ -69,22 +72,33 @@ public class AttachmentServiceImpl implements AttachmentService {
       throw new IllegalStateException("Failed to store file", e);
     }
     TaskAttachment meta = new TaskAttachment();
-    meta.setTaskId(taskId);
+    meta.setTask(task);
     meta.setFileName(original);
     meta.setStoredFileName(stored);
     meta.setContentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
     meta.setSize(file.getSize());
     meta.setUploadedAt(LocalDateTime.now());
-    return attachmentRepository.save(meta);
+    try {
+      return attachmentRepository.save(meta);
+    } catch (RuntimeException ex) {
+      try {
+        Files.deleteIfExists(target);
+      } catch (IOException ignored) {
+        // best effort cleanup after a failed DB operation
+      }
+      throw ex;
+    }
   }
 
   @Override
+  @Transactional(readOnly = true)
   public TaskAttachment getAttachment(Long attachmentId) {
     return attachmentRepository.findById(attachmentId)
         .orElseThrow(() -> new AttachmentNotFoundException(attachmentId));
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Resource loadAsResource(Long attachmentId) {
     TaskAttachment meta = getAttachment(attachmentId);
     Path file = uploadRoot.resolve(meta.getStoredFileName());
@@ -103,6 +117,7 @@ public class AttachmentServiceImpl implements AttachmentService {
   }
 
   @Override
+  @Transactional
   public void deleteAttachment(Long attachmentId) {
     TaskAttachment meta = getAttachment(attachmentId);
     Path file = uploadRoot.resolve(meta.getStoredFileName());
@@ -111,6 +126,6 @@ public class AttachmentServiceImpl implements AttachmentService {
     } catch (IOException ignored) {
       // still remove metadata
     }
-    attachmentRepository.deleteById(attachmentId);
+    attachmentRepository.delete(meta);
   }
 }

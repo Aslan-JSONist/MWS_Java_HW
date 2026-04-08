@@ -144,6 +144,20 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
   }
 
+  @ExceptionHandler(BulkTaskCompletionException.class)
+  public ResponseEntity<ErrorResponse> handleBulkTaskCompletion(BulkTaskCompletionException ex,
+      HttpServletRequest request) {
+    ErrorResponse body = new ErrorResponse(
+        Instant.now(),
+        HttpStatus.NOT_FOUND.value(),
+        HttpStatus.NOT_FOUND.getReasonPhrase(),
+        ex.getMessage(),
+        request.getRequestURI(),
+        Map.of("missingTaskId", ex.getMissingTaskId())
+    );
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
     Map<String, Object> details = null;

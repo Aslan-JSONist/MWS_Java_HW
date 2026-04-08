@@ -13,11 +13,15 @@ public interface TaskService {
 
   List<Task> getAll();
 
+  List<Task> getAllWithAttachments();
+
   Optional<Task> getById(Long id);
 
   Task create(Task task);
 
   Task update(Long id, TaskUpdateDto dto);
+
+  void bulkCompleteTasks(List<Long> ids);
 
   void delete(Long id);
 

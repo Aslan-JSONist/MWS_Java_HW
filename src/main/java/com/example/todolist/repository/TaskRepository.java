@@ -1,21 +1,34 @@
 package com.example.todolist.repository;
 
+import com.example.todolist.model.Priority;
 import com.example.todolist.model.Task;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * TaskRepository defines CRUD operations for task persistence layer.
+ * JPA repository for tasks.
  */
-public interface TaskRepository {
+public interface TaskRepository extends JpaRepository<Task, Long> {
 
-  List<Task> findAll();
+  List<Task> findByCompletedAndPriority(boolean completed, Priority priority);
 
-  Optional<Task> findById(Long id);
+  @Override
+  @EntityGraph(attributePaths = "tags")
+  java.util.Optional<Task> findById(Long id);
 
-  Task save(Task task);
+  @EntityGraph(attributePaths = "tags")
+  List<Task> findAllByOrderByIdAsc();
 
-  void deleteById(Long id);
+  @Query("select t from Task t where t.dueDate between :today and :nextSevenDays order by t.dueDate asc")
+  List<Task> findTasksDueInNextSevenDays(@Param("today") LocalDate today,
+      @Param("nextSevenDays") LocalDate nextSevenDays);
 
-  long count();
+  @EntityGraph(attributePaths = {"attachments", "tags"})
+  @Query("select t from Task t order by t.id asc")
+  List<Task> findAllWithAttachments();
 }
