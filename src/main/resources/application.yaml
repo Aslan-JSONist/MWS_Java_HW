@@ -6,6 +6,47 @@ app:
   version: 1.0
   api-version: "2.0.0"
   upload-dir: ${user.dir}/uploads
+  external:
+    # If empty, base URL is http://127.0.0.1:{server.port}/external/v1 (see ExternalTasksClient)
+    base-url:
+    connect-timeout-ms: 2000
+    read-timeout-ms: 3000
+  security:
+    password-pepper: ${APP_PASSWORD_PEPPER:change-me-pepper-for-local-dev}
+    legacy-api-permit-all: false
+    jwt:
+      secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      expiration-ms: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+resilience4j:
+  ratelimiter:
+    instances:
+      externalApi:
+        limit-for-period: 10
+        limit-refresh-period: 1s
+        timeout-duration: 0
+  circuitbreaker:
+    instances:
+      externalApi:
+        sliding-window-type: count_based
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        ignore-exceptions:
+          - com.example.todolist.exception.TaskNotFoundException
+          - io.github.resilience4j.ratelimiter.RequestNotPermitted
 
 spring:
   profiles:
@@ -67,6 +108,26 @@ spring:
 logging:
   level:
     root: WARN
+
+app:
+  security:
+    legacy-api-permit-all: true
+
+resilience4j:
+  ratelimiter:
+    instances:
+      externalApi:
+        limit-for-period: 10
+        limit-refresh-period: 2s
+        timeout-duration: 0
+  circuitbreaker:
+    instances:
+      externalApi:
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 40
+        wait-duration-in-open-state: 2s
+        permitted-number-of-calls-in-half-open-state: 2
 
 ---
 spring:

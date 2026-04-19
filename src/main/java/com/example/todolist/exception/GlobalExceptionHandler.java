@@ -1,6 +1,7 @@
 package com.example.todolist.exception;
 
 import com.example.todolist.dto.ErrorResponse;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.core.env.Environment;
@@ -119,15 +120,63 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(TaskNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex,
       HttpServletRequest request) {
+    Map<String, Object> details = new HashMap<>();
+    details.put("taskId", ex.getTaskId());
+    if (ex.getDetail() != null && !ex.getDetail().isBlank()) {
+      details.put("upstreamDetail", ex.getDetail());
+    }
     ErrorResponse body = new ErrorResponse(
         Instant.now(),
         HttpStatus.NOT_FOUND.value(),
         HttpStatus.NOT_FOUND.getReasonPhrase(),
         ex.getMessage(),
         request.getRequestURI(),
-        Map.of("taskId", ex.getTaskId())
+        details
     );
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+  }
+
+  @ExceptionHandler(ExternalApiException.class)
+  public ResponseEntity<ErrorResponse> handleExternalApi(ExternalApiException ex,
+      HttpServletRequest request) {
+    ErrorResponse body = new ErrorResponse(
+        Instant.now(),
+        HttpStatus.BAD_GATEWAY.value(),
+        HttpStatus.BAD_GATEWAY.getReasonPhrase(),
+        ex.getMessage(),
+        request.getRequestURI(),
+        Map.of("upstreamStatus", ex.getStatusCode())
+    );
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
+  }
+
+  @ExceptionHandler(ExternalServiceUnavailableException.class)
+  public ResponseEntity<ErrorResponse> handleExternalServiceUnavailable(
+      ExternalServiceUnavailableException ex,
+      HttpServletRequest request) {
+    ErrorResponse body = new ErrorResponse(
+        Instant.now(),
+        HttpStatus.SERVICE_UNAVAILABLE.value(),
+        HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+        ex.getMessage(),
+        request.getRequestURI(),
+        null
+    );
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
+  }
+
+  @ExceptionHandler(RequestNotPermitted.class)
+  public ResponseEntity<ErrorResponse> handleRateLimit(RequestNotPermitted ex,
+      HttpServletRequest request) {
+    ErrorResponse body = new ErrorResponse(
+        Instant.now(),
+        HttpStatus.TOO_MANY_REQUESTS.value(),
+        HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
+        "Rate limit exceeded for external API",
+        request.getRequestURI(),
+        null
+    );
+    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
   }
 
   @ExceptionHandler(AttachmentNotFoundException.class)
