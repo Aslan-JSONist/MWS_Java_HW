@@ -10,16 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class TaskControllerTest {
+class TaskControllerIntegrationTest {
 
   @LocalServerPort
   private int port;
@@ -46,8 +50,8 @@ class TaskControllerTest {
         restTemplate.postForEntity(url(), validCreate(), TaskResponseDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().getId()).isNotNull();
+    TaskResponseDto body = Objects.requireNonNull(response.getBody());
+    assertThat(body.getId()).isNotNull();
     assertThat(response.getHeaders().getFirst("X-API-Version")).isEqualTo("2.0.0");
   }
 
@@ -85,15 +89,16 @@ class TaskControllerTest {
 
   @Test
   void getById_positive() {
-    TaskResponseDto created = restTemplate
+    TaskResponseDto created = Objects.requireNonNull(restTemplate
         .postForEntity(url(), validCreate(), TaskResponseDto.class)
-        .getBody();
+        .getBody());
 
     ResponseEntity<TaskResponseDto> response =
         restTemplate.getForEntity(url() + "/" + created.getId(), TaskResponseDto.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody().getId()).isEqualTo(created.getId());
+    TaskResponseDto responseBody = Objects.requireNonNull(response.getBody());
+    assertThat(responseBody.getId()).isEqualTo(created.getId());
   }
 
   @Test
@@ -106,9 +111,9 @@ class TaskControllerTest {
 
   @Test
   void update_positive() {
-    TaskResponseDto created = restTemplate
+    TaskResponseDto created = Objects.requireNonNull(restTemplate
         .postForEntity(url(), validCreate(), TaskResponseDto.class)
-        .getBody();
+        .getBody());
 
     TaskUpdateDto update = new TaskUpdateDto();
     update.setTitle("Updated title longer");
@@ -122,8 +127,9 @@ class TaskControllerTest {
     );
 
     assertThat(putResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(putResponse.getBody().getTitle()).isEqualTo("Updated title longer");
-    assertThat(putResponse.getBody().isCompleted()).isTrue();
+    TaskResponseDto responseBody = Objects.requireNonNull(putResponse.getBody());
+    assertThat(responseBody.getTitle()).isEqualTo("Updated title longer");
+    assertThat(responseBody.isCompleted()).isTrue();
   }
 
   @Test
@@ -143,9 +149,9 @@ class TaskControllerTest {
 
   @Test
   void delete_positive() {
-    TaskResponseDto created = restTemplate
+    TaskResponseDto created = Objects.requireNonNull(restTemplate
         .postForEntity(url(), validCreate(), TaskResponseDto.class)
-        .getBody();
+        .getBody());
 
     ResponseEntity<Void> response =
         restTemplate.exchange(
